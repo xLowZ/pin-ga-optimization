@@ -1,16 +1,20 @@
 import sys
 import os
+import json
+import subprocess
 
 sys.path.insert(0, os.path.abspath(os.curdir))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 import numpy as np
 import time
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 # from benchmark import *
 from utils import RASTRIGIN, ACKLEY, SPHERE, EASOM, MCCORMICK
 from algorithm import *
+from UI.interface import get_user_inputs
 
 
 def timer(elapsed_time: float) -> None:
@@ -31,21 +35,21 @@ def timer(elapsed_time: float) -> None:
         print(f"Time: {hours} hours, {minutes} minutes and {seconds:.1f} seconds")
 
 
-def plot_fitness_classification(classification: list[int]) -> None:
-    """
-        Plot a pie chart of the fitness classification.
+# def plot_fitness_classification(classification: list[int]) -> None:
+#     """
+#         Plot a pie chart of the fitness classification.
 
-    Args:
-        classification (list[int]): List with the count of solutions in each classification.
-    """
-    labels = ['Excellent', 'Good', 'Average', 'Poor']
-    colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99']
+#     Args:
+#         classification (list[int]): List with the count of solutions in each classification.
+#     """
+#     labels = ['Excellent', 'Good', 'Average', 'Poor']
+#     colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99']
     
-    plt.figure(figsize=(8, 8))
-    plt.pie(classification, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
-    plt.title('Fitness Classification')
-    plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    plt.show()
+#     plt.figure(figsize=(8, 8))
+#     plt.pie(classification, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
+#     plt.title('Fitness Classification')
+#     plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+#     plt.show()
 
 
 def classify_fitness(solutions: list[Solution], target_fnc: int) -> list[int]:
@@ -106,25 +110,25 @@ def eval_GA(results: list[Solution], target_fnc):
     print(f"Best solution found: {best_value}")
     print(f"Worst solution found: {worst_value}")
 
-    plot_fitness_classification(classify_fitness(results, target_fnc))
+    # plot_fitness_classification(classify_fitness(results, target_fnc))
 
-    # Visualization
-    plt.hist(solution_values, bins=30, alpha=0.75, color='blue')
-    plt.title('Distribution of solution values')
-    plt.xlabel('Objective function value')
-    plt.ylabel('Frequency')
-    plt.show()
+    # # Visualization
+    # plt.hist(solution_values, bins=30, alpha=0.75, color='blue')
+    # plt.title('Distribution of solution values')
+    # plt.xlabel('Objective function value')
+    # plt.ylabel('Frequency')
+    # plt.show()
 
 
-def conversion_visualization(trajectories: list[list[float]]) -> None:
-    # Visualize the convergence
-    for trajectory in trajectories:
-        plt.plot(trajectory, alpha=0.5, color='blue')
+# def conversion_visualization(trajectories: list[list[float]]) -> None:
+#     # Visualize the convergence
+#     for trajectory in trajectories:
+#         plt.plot(trajectory, alpha=0.5, color='blue')
 
-    plt.title('Genetic Algorithm Convergence')
-    plt.xlabel('Generation')
-    plt.ylabel('Best solution value')
-    plt.show()
+#     plt.title('Genetic Algorithm Convergence')
+#     plt.xlabel('Generation')
+#     plt.ylabel('Best solution value')
+#     plt.show()
 
 
 def genetic_algorithm(*, nIterations: int, pop_size: int, mutation_rate: float, target_function: int, dimensions: int) -> tuple[Solution, float]:
@@ -163,52 +167,90 @@ def VARgenetic_algorithm(*, nIterations: int, pop_size: int, mutation_rate: floa
     return population[0], best_solutions_per_generation
 
 
-def main() -> None:
+# def main() -> None:
 
-    np.random.seed(10)
+#     np.random.seed(10)
 
+#     solutions = []
+#     trajectories = []
+
+#     target_function = MCCORMICK
+#     population_size: int = 250
+#     number_of_generations: int = 500
+#     dimensions: int = 2
+#     mutation_rate: float = 0.1
+#     final_mutation_rate = 0.01
+#     nTests = 5
+
+#     start = time.time()
+#     for iteration in range(nTests):
+
+#         best_solution, best_solutions_per_generation = genetic_algorithm(
+#             nIterations=number_of_generations,
+#             pop_size=population_size,
+#             mutation_rate=mutation_rate,
+#             target_function=target_function,
+#             dimensions=dimensions,
+#         )
+
+#         # best_solution, best_solutions_per_generation = VARgenetic_algorithm(
+#         #     nIterations=number_of_generations,
+#         #     pop_size=population_size,
+#         #     mutation_rate=mutation_rate,
+#         #     final_mutation_rate=final_mutation_rate,
+#         #     target_function=target_function,
+#         #     dimensions=dimensions,
+#         # )
+
+#         print(f"{iteration+1}. Best solution: {best_solution}")
+
+#         solutions.append(best_solution)
+#         trajectories.append(best_solutions_per_generation)
+#     end = time.time()
+
+#     eval_GA(solutions, target_function)
+
+#     conversion_visualization(trajectories)    
+
+#     timer(end-start)
+
+def run_ga(benchmark, population_size, number_of_generations, dimensions, mutation_rate, nTests):
     solutions = []
     trajectories = []
-
-    target_function = MCCORMICK
-    population_size: int = 250
-    number_of_generations: int = 500
-    dimensions: int = 2
-    mutation_rate: float = 0.1
-    final_mutation_rate = 0.01
-    nTests = 5
-
-    start = time.time()
     for iteration in range(nTests):
-
         best_solution, best_solutions_per_generation = genetic_algorithm(
             nIterations=number_of_generations,
             pop_size=population_size,
             mutation_rate=mutation_rate,
-            target_function=target_function,
+            target_function=benchmark,
             dimensions=dimensions,
         )
-
-        # best_solution, best_solutions_per_generation = VARgenetic_algorithm(
-        #     nIterations=number_of_generations,
-        #     pop_size=population_size,
-        #     mutation_rate=mutation_rate,
-        #     final_mutation_rate=final_mutation_rate,
-        #     target_function=target_function,
-        #     dimensions=dimensions,
-        # )
-
-        print(f"{iteration+1}. Best solution: {best_solution}")
-
         solutions.append(best_solution)
         trajectories.append(best_solutions_per_generation)
-    end = time.time()
+    return solutions, trajectories
 
-    eval_GA(solutions, target_function)
+def main() -> None:
+    config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
+    subprocess.run(["python", os.path.join(os.path.dirname(__file__), 'UI', 'interface.py')])
 
-    conversion_visualization(trajectories)    
+    with open(config_path, "r") as f:
+        user_inputs = json.load(f)
 
-    timer(end-start)
+    benchmarks = user_inputs["benchmarks"]
+    population_size = int(user_inputs["population_size"])
+    number_of_generations = int(user_inputs["number_of_generations"])
+    dimensions = int(user_inputs["dimensions"])
+    mutation_rate = float(user_inputs["mutation_rate"])  # Garantir que seja float
+    nTests = int(user_inputs["nTests"])
+
+    for benchmark in benchmarks:
+        solutions, trajectories = run_ga(eval(benchmark), population_size, number_of_generations, dimensions, mutation_rate, nTests)
+        eval_GA(solutions, eval(benchmark))
+        #conversion_visualization(trajectories)
+
+if __name__ == "__main__":
+    main()
+
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -338,6 +380,6 @@ def variacao_mut():
     # conversion_visualization(trajectories)    
 
 
-if __name__ == "__main__":
-    main()
-    # variacao_mut()
+# if __name__ == "__main__":
+#     main()
+#     # variacao_mut()
