@@ -21,9 +21,10 @@ def get_user_inputs():
                     inputs[param] = int(entries[param].get())
             with open(config_path, "w") as f:
                 json.dump(inputs, f)
-            app.quit()
+            error_label.configure(text="Inputs successfully submitted. You can now close the interface.")
+            # Run the operations here if needed
         except ValueError:
-            error_label.config(text="Please enter valid numbers for all fields")
+            error_label.configure(text="Please enter valid numbers for all fields")
 
     app = ctk.CTk()
 

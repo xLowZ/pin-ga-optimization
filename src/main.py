@@ -229,9 +229,8 @@ def run_ga(benchmark, population_size, number_of_generations, dimensions, mutati
         trajectories.append(best_solutions_per_generation)
     return solutions, trajectories
 
-def main() -> None:
+def run_operations():
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
-    subprocess.run(["python", os.path.join(os.path.dirname(__file__), 'UI', 'interface.py')])
 
     with open(config_path, "r") as f:
         user_inputs = json.load(f)
@@ -246,8 +245,16 @@ def main() -> None:
     for benchmark in benchmarks:
         solutions, trajectories = run_ga(eval(benchmark), population_size, number_of_generations, dimensions, mutation_rate, nTests)
         eval_GA(solutions, eval(benchmark))
-        #conversion_visualization(trajectories)
+        # conversion_visualization(trajectories)
 
+def main() -> None:
+    config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
+    subprocess.run(["python", os.path.join(os.path.dirname(__file__), 'UI', 'interface.py')])
+    run_operations()
+
+    # Manter o terminal aberto
+    input("Press Enter to exit...")
+    
 if __name__ == "__main__":
     main()
 
