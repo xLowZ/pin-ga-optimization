@@ -23,9 +23,15 @@ Para executar este projeto, siga os passos abaixo:
     ```
 2. Navegue até o diretório do projeto:
     ```bash
-    cd pin-ga-optimization
+    cd pin-ga-optimization 
     ```
-3. Instale as dependências:
+3. Crie um ambiente virtual (opcional, mas recomendado):
+    ```bash	
+    python -m venv venv
+    source venv/bin/activate   # Linux/Mac
+    .\venv\Scripts\activate    # Windows
+    ```
+4. Instale as dependências:
     ```bash
     pip install -r requirements.txt
     ```
