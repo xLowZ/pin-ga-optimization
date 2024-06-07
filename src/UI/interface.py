@@ -9,6 +9,7 @@ import json
 def get_user_inputs():
     inputs = {}
     config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'user_inputs.json')
+    icon_path = os.path.join(os.path.dirname(__file__), 'icon.ico')
 
     def submit():
         try:
@@ -35,6 +36,7 @@ def get_user_inputs():
     app.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
 
     app.title("ProTεuS G.A.O.")
+    app.iconbitmap(icon_path)  # Adiciona o ícone
     app.resizable(False, False)  # Torna a janela não redimensionável
 
     ctk.CTkLabel(app, text="ProTεuS Genetic Algorithm Optimization", font=("Segoe UI", 20)).pack(pady=10)
