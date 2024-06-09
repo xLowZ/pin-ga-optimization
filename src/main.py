@@ -81,15 +81,15 @@ def main() -> None:
     solutions = []
     trajectories = []
 
-    target_function = MCCORMICK
+    target_function = SPHERE
     population_size: int = 250
     number_of_generations: int = 2000
-    dimensions: int = 2
+    dimensions: int = 3
     mutation_rate: float = 0.1
-    final_mutation_rate = 0.1
-    mutation_strength = 0.2
-    final_mutation_strength = 0.001
-    nTests = 4
+    final_mutation_rate : float= 0.1
+    mutation_strength: float = 0.2
+    final_mutation_strength: float = 0.001
+    nTests: int = 4
 
     start = time.time()
     for iteration in range(nTests):
@@ -121,8 +121,8 @@ def main() -> None:
 
     eval_GA(solutions, target_function)
 
-    if nTests < 4:
-        conversion_visualization(trajectories)    
+    # if nTests < 4:
+    #     conversion_visualization(trajectories)    
 
     timer(end-start)
 
