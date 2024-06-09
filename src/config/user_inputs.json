@@ -1,0 +1,1 @@
+{"benchmarks": ["SPHERE"], "population_size": 100, "number_of_generations": 2000, "dimensions": 2, "mutation_rate": 0.1, "final_mutation_rate": 0.1, "mutation_strength": 0.2, "final_mutation_strength": 0.001, "nTests": 3}

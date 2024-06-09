@@ -198,6 +198,7 @@ def crossover(first_parent: Solution, second_parent: Solution, *, nPoints=ONE) -
 
     return first_child, second_child
 
+
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # --- Find Best ---
 
@@ -223,7 +224,7 @@ def find_best(population: list[Solution]) -> Solution:
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # --- Create New Generation ---
 
-def create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size: int, target_fnc: int) -> list[Solution]: 
+def create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size: int, target_fnc: int, ms: float = 0.2) -> list[Solution]: 
     """
         Generate new solutions an keeps the best solution from previous generation.
 
@@ -231,32 +232,33 @@ def create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size: int
         prev_gen (list[Solution]): Previous population of solutions.
         mutation_rate (float): Mutation rate.
         target_fnc (int): Current target function.
+        ms (float): Mutation strength.
 
     Returns:
         list[Solution]: A new population of solutions.
     """
 
-    new_generation = [find_best(prev_gen)] # Elitism: Keep the best solution of the last generation
+    # Elitism: Keep the best solution of the last generation
+    new_generation = [find_best(prev_gen)] 
     
 
-    # Uses two solutions to create two new solutions. Therefore, only half iterations will be required
-
     if len(prev_gen[0]) > 1:
+    # Uses two solutions to create two new solutions. Therefore, only half iterations will be required
         for _ in range ( len(prev_gen) // 2 ):
             first_parent  = selection(prev_gen, pop_size, mode=TOURNAMENT)
             second_parent = selection(prev_gen, pop_size, mode=TOURNAMENT)   
 
             first_child, second_child = crossover(first_parent, second_parent, nPoints=ONE)
 
+            # Mutation
+            if np.random.rand() < mutation_rate:
+                first_child.mutate(mutation_strength=ms)
+            if np.random.rand() < mutation_rate:
+                second_child.mutate(mutation_strength=ms)
+
             # Evaluate the new solutions
             first_child.calc_fitness(target_fnc)
             second_child.calc_fitness(target_fnc)
-
-            # Mutation
-            if np.random.rand() < mutation_rate:
-                first_child.mutate(mutation_strength=0.2)
-            if np.random.rand() < mutation_rate:
-                second_child.mutate(mutation_strength=0.2)
 
             new_generation.append(first_child)        
             new_generation.append(second_child) 
@@ -268,18 +270,20 @@ def create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size: int
         selected_indices = np.argsort(fitness)[:pop_size // 2]
         selected = [prev_gen[i] for i in selected_indices]
 
-        # Maybe mutate
         offspring = []
-        for _ in selected:
+        for nInd in selected:
             new_solution = Solution(np.random.uniform(low=BOUNDS[target_fnc][LOWER], high=BOUNDS[target_fnc][HIGHER], size=1))
 
             new_solution.calc_fitness(target_fnc)
 
             offspring.append(new_solution)
 
-        # if np.random.rand() < mutation_rate:
-        #     inds: list[int] = np.random.choice(range(0, int(pop_size/2)), int(pop_size/4), replace=False)
-        #     selected: list[Solution] = [ selected[i].mutate(mutation_strength=0.2) for i in inds ]         
+        # Mutation
+        if np.random.rand() < mutation_rate:
+            inds = np.random.choice(range(len(offspring)), int(len(offspring) / 4), replace=False)
+            for i in inds:
+                offspring[i].mutate(mutation_strength=0.2)        
+                offspring[i].calc_fitness(target_fnc)        
 
         new_generation = selected + offspring
 
@@ -291,15 +295,16 @@ def create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size: int
     return new_generation         
 
 
-def VAR_create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size: int, target_fnc: int, elite_fraction: float = 0.05) -> list[Solution]: 
+def VAR_create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size: int, target_fnc: int, ms: float = 0.2, elite_fraction: float = 0.05) -> list[Solution]: 
     """
-    Generate new solutions and keep the best solutions from the previous generation.
+        Generate new solutions and keep the best solutions from the previous generation.
 
     Args:
         prev_gen (list[Solution]): Previous population of solutions.
         mutation_rate (float): Mutation rate.
         pop_size (int): Population size.
         target_fnc (int): Current target function.
+        ms (float): Mutation strength.
         elite_fraction (float): Fraction of the best solutions to keep as elite.
 
     Returns:
@@ -315,7 +320,6 @@ def VAR_create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size:
     # Elitism: Keep the best solutions from the last generation
     new_generation = sorted_prev_gen[:num_elites]
 
-    # Uses two solutions to create two new solutions. Therefore, only half iterations will be required
     while len(new_generation) < pop_size:
         first_parent = selection(prev_gen, pop_size, mode=TOURNAMENT)
         second_parent = selection(prev_gen, pop_size, mode=TOURNAMENT)
@@ -323,15 +327,15 @@ def VAR_create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size:
         if len(prev_gen[0]) > 1:
             first_child, second_child = crossover(first_parent, second_parent, nPoints=ONE)
 
+            # Mutation
+            if np.random.rand() < mutation_rate:
+                first_child.mutate(mutation_strength=ms)
+            if np.random.rand() < mutation_rate:
+                second_child.mutate(mutation_strength=ms)
+
             # Evaluate the new solutions
             first_child.calc_fitness(target_fnc)
             second_child.calc_fitness(target_fnc)
-
-            # Mutation
-            if np.random.rand() < mutation_rate:
-                first_child.mutate()
-            if np.random.rand() < mutation_rate:
-                second_child.mutate()
 
             new_generation.append(first_child)
             new_generation.append(second_child)
@@ -342,14 +346,19 @@ def VAR_create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size:
             selected_indices = np.argsort(fitness)[:pop_size // 2]
             selected = [prev_gen[i] for i in selected_indices]
 
-            # Maybe mutate
             offspring = []
-            for ind in selected:
+            for nInd in selected:
                 new_solution = Solution(np.random.uniform(low=BOUNDS[target_fnc][LOWER], high=BOUNDS[target_fnc][HIGHER], size=1))
 
                 new_solution.calc_fitness(target_fnc)
 
                 offspring.append(new_solution)
+
+            if np.random.rand() < mutation_rate:
+                inds = np.random.choice(range(len(offspring)), int(len(offspring) / 4), replace=False)
+                for i in inds:
+                    offspring[i].mutate(mutation_strength=ms)        
+                    offspring[i].calc_fitness(target_fnc)     
 
             new_generation = selected + offspring
 

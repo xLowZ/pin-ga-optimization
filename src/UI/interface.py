@@ -15,21 +15,20 @@ def get_user_inputs():
         try:
             inputs["benchmarks"] = [key for key, var in selected_benchmarks.items() if var.get()]
             for param in params:
-                if param == "mutation_rate":
+                if param in ["mutation_rate", "final_mutation_rate", "mutation_strength", "final_mutation_strength"]:
                     inputs[param] = float(entries[param].get())
                 else:
                     inputs[param] = int(entries[param].get())
             with open(config_path, "w") as f:
                 json.dump(inputs, f)
             error_label.configure(text="Inputs successfully submitted. You can now close the interface.")
-            # Run the operations here if needed
         except ValueError:
             error_label.configure(text="Please enter valid numbers for all fields")
 
     app = ctk.CTk()
 
     # Centraliza a janela na tela
-    window_width, window_height = 400, 600
+    window_width, window_height = 400, 670
     screen_width = app.winfo_screenwidth()
     screen_height = app.winfo_screenheight()
     position_top = int(screen_height / 2 - window_height / 2)
@@ -37,7 +36,7 @@ def get_user_inputs():
     app.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
 
     app.title("ProTεuS G.A.O.")
-    app.iconbitmap(icon_path)  # Adiciona o ícone
+    app.iconbitmap(icon_path)  
     app.resizable(False, False)  # Torna a janela não redimensionável
 
     ctk.CTkLabel(app, text="ProTεuS Genetic Algorithm Optimization", font=("Segoe UI", 20)).pack(pady=10)
@@ -63,6 +62,9 @@ def get_user_inputs():
         "number_of_generations": "Number of Generations",
         "dimensions": "Dimensions",
         "mutation_rate": "Mutation Rate",
+        "final_mutation_rate": "Final Mutation Rate",
+        "mutation_strength": "Mutation Strength",
+        "final_mutation_strength": "Final Mutation Strength",
         "nTests": "Number of Tests"
     }
     for param, label in params.items():
@@ -77,8 +79,7 @@ def get_user_inputs():
     error_label = ctk.CTkLabel(app, text="", text_color="red", font=("Segoe UI", 12))
     error_label.pack(pady=5)
 
-    # Adiciona o texto "Alpha_1.0" no canto inferior esquerdo
-    version_label = ctk.CTkLabel(app, text="Alpha_1.0", font=("Segoe UI", 10))
+    version_label = ctk.CTkLabel(app, text="Alpha_1.1", font=("Segoe UI", 10))
     version_label.place(relx=0.01, rely=1.01, anchor='sw')
 
     app.mainloop()
