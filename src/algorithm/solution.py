@@ -68,7 +68,7 @@ class Solution:
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # --- Mutation function ---
 
-    def mutate(self, mutation_strength: float = 0.5) -> None:
+    def mutate(self, mutation_strength: float = 0.2) -> None:
         """
             Apply Gaussian mutation to the solution.
 

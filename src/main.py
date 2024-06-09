@@ -9,7 +9,7 @@ import time
 import matplotlib.pyplot as plt
 
 # from benchmark import *
-from utils import RASTRIGIN, ACKLEY, SPHERE, EASOM, MCCORMICK
+from utils import RASTRIGIN, ACKLEY, SPHERE, EASOM, MCCORMICK, eval_GA, conversion_visualization
 from algorithm import *
 
 
@@ -31,102 +31,6 @@ def timer(elapsed_time: float) -> None:
         print(f"Time: {hours} hours, {minutes} minutes and {seconds:.1f} seconds")
 
 
-def plot_fitness_classification(classification: list[int]) -> None:
-    """
-        Plot a pie chart of the fitness classification.
-
-    Args:
-        classification (list[int]): List with the count of solutions in each classification.
-    """
-    labels = ['Excellent', 'Good', 'Average', 'Poor']
-    colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99']
-    
-    plt.figure(figsize=(8, 8))
-    plt.pie(classification, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
-    plt.title('Fitness Classification')
-    plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    plt.show()
-
-
-def classify_fitness(solutions: list[Solution], target_fnc: int) -> list[int]:
-    """
-        Classify the fitness value of the solutions.
-
-        Args:
-            solutions (list[Solution]): List of solutions.
-
-        Returns:
-            list[int]: List with the count of solutions in each classification.
-    """
-
-    classification = [0, 0, 0, 0]
-
-    if target_fnc == RASTRIGIN or ACKLEY or SPHERE:
-
-        EXCELLENT_THRESHOLD = 1e-9
-
-        GOOD_THRESHOLD = 1e-7
-
-        AVERAGE_THRESHOLD = 1e-5
-
-        for solution in solutions:
-
-            fitness = solution.get_fitness()
-            if fitness < EXCELLENT_THRESHOLD:
-                classification[0] += 1  # Excellent
-            elif EXCELLENT_THRESHOLD <= fitness < GOOD_THRESHOLD:
-                classification[1] += 1  # Good
-            elif GOOD_THRESHOLD <= fitness < AVERAGE_THRESHOLD:
-                classification[2] += 1  # Average
-            else:
-                classification[3] += 1  # Poor
-
-    elif target_fnc == EASOM:
-        raise NotImplementedError
-
-    else:
-        raise NotImplementedError
-
-
-    return classification    
-
-
-def eval_GA(results: list[Solution], target_fnc):
-    
-    solution_values = [sol.get_fitness() for sol in results]
-
-    # Basic Statistics
-    mean_value = np.mean(solution_values)
-    std_value = np.std(solution_values)
-    best_value = np.min(solution_values)
-    worst_value = np.max(solution_values)
-
-    print(f"Mean of solutions: {mean_value}")
-    print(f"Standard deviation of solutions: {std_value}")
-    print(f"Best solution found: {best_value}")
-    print(f"Worst solution found: {worst_value}")
-
-    plot_fitness_classification(classify_fitness(results, target_fnc))
-
-    # Visualization
-    plt.hist(solution_values, bins=30, alpha=0.75, color='blue')
-    plt.title('Distribution of solution values')
-    plt.xlabel('Objective function value')
-    plt.ylabel('Frequency')
-    plt.show()
-
-
-def conversion_visualization(trajectories: list[list[float]]) -> None:
-    # Visualize the convergence
-    for trajectory in trajectories:
-        plt.plot(trajectory, alpha=0.5, color='blue')
-
-    plt.title('Genetic Algorithm Convergence')
-    plt.xlabel('Generation')
-    plt.ylabel('Best solution value')
-    plt.show()
-
-
 def genetic_algorithm(*, nIterations: int, pop_size: int, mutation_rate: float, target_function: int, dimensions: int) -> tuple[Solution, float]:
 
     best_solutions_per_generation = []
@@ -135,16 +39,18 @@ def genetic_algorithm(*, nIterations: int, pop_size: int, mutation_rate: float, 
 
     for generation in range(nIterations):
 
+        # population = VAR_create_new_gen(population, mutation_rate, pop_size, target_function)
         population = create_new_gen(population, mutation_rate, pop_size, target_function)
 
-        print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
+        # print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
 
         best_solutions_per_generation.append(population[0].get_fitness())
 
     return population[0], best_solutions_per_generation
 
 
-def VARgenetic_algorithm(*, nIterations: int, pop_size: int, mutation_rate: float, final_mutation_rate, target_function: int, dimensions: int) -> Solution:
+
+def msGA(*, nIterations: int, pop_size: int, mutation_rate: float, final_mutation_rate: float=0.01, ms_rate: float=0.2, final_ms_rate: float=0.0001, target_function: int, dimensions: int) -> Solution:
 
     best_solutions_per_generation = []
 
@@ -152,11 +58,16 @@ def VARgenetic_algorithm(*, nIterations: int, pop_size: int, mutation_rate: floa
 
     for generation in range(nIterations):
 
-        current_mutation_rate = mutation_rate - (generation / nIterations) * (mutation_rate - final_mutation_rate)
+        def linear_decay(initial_rate, final_rate):
+            return initial_rate - (generation / nIterations) * (initial_rate - final_rate)
 
-        population = VAR_create_new_gen(population, current_mutation_rate, pop_size, target_function)
+        current_mutation_rate = linear_decay(mutation_rate, final_mutation_rate)
+        mutation_strength = linear_decay(ms_rate, final_ms_rate)
 
-        print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
+        # population = VAR_create_new_gen(population, current_mutation_rate, pop_size, target_function, mutation_strength)
+        population = create_new_gen(population, current_mutation_rate, pop_size, target_function, mutation_strength)
+
+        # print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
 
         best_solutions_per_generation.append(population[0].get_fitness())
 
@@ -172,31 +83,35 @@ def main() -> None:
 
     target_function = MCCORMICK
     population_size: int = 250
-    number_of_generations: int = 500
+    number_of_generations: int = 2000
     dimensions: int = 2
     mutation_rate: float = 0.1
-    final_mutation_rate = 0.01
-    nTests = 5
+    final_mutation_rate = 0.1
+    mutation_strength = 0.2
+    final_mutation_strength = 0.001
+    nTests = 4
 
     start = time.time()
     for iteration in range(nTests):
 
-        best_solution, best_solutions_per_generation = genetic_algorithm(
-            nIterations=number_of_generations,
-            pop_size=population_size,
-            mutation_rate=mutation_rate,
-            target_function=target_function,
-            dimensions=dimensions,
-        )
-
-        # best_solution, best_solutions_per_generation = VARgenetic_algorithm(
+        # best_solution, best_solutions_per_generation = genetic_algorithm(
         #     nIterations=number_of_generations,
         #     pop_size=population_size,
         #     mutation_rate=mutation_rate,
-        #     final_mutation_rate=final_mutation_rate,
         #     target_function=target_function,
         #     dimensions=dimensions,
         # )
+
+        best_solution, best_solutions_per_generation = msGA(
+            nIterations=number_of_generations,
+            pop_size=population_size,
+            mutation_rate=mutation_rate,
+            final_mutation_rate=final_mutation_rate,
+            ms_rate=mutation_strength,
+            final_ms_rate=final_mutation_strength,
+            target_function=target_function,
+            dimensions=dimensions,
+        )
 
         print(f"{iteration+1}. Best solution: {best_solution}")
 
@@ -206,7 +121,8 @@ def main() -> None:
 
     eval_GA(solutions, target_function)
 
-    conversion_visualization(trajectories)    
+    if nTests < 4:
+        conversion_visualization(trajectories)    
 
     timer(end-start)
 
