@@ -41,7 +41,7 @@ def initialization(pop_size: int, *, nDimensions: int, target_fnc: int) -> list[
 
     initial_population: list[Solution] = []
 
-    if target_fnc in (RASTRIGIN, ACKLEY, SPHERE):
+    if target_fnc in (RASTRIGIN, ACKLEY, SPHERE, EASOM):
         # Create solutions in target function bounds range
         for _ in range(pop_size):
 
