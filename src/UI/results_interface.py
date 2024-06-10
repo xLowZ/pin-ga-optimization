@@ -6,12 +6,14 @@ from tkinter import filedialog
 
 def show_results():
     results_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'results.json')
+    icon_path = os.path.join(os.path.dirname(__file__), 'icon.ico')
 
     with open(results_path, "r") as f:
         all_results = json.load(f)
 
     app = ctk.CTk()
     app.title("GA Benchmark Results")
+    app.iconbitmap(icon_path)
     app.geometry("700x900")
     app.resizable(False, False)
 
