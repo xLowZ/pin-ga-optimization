@@ -1,10 +1,8 @@
 import sys
 import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
-
 import customtkinter as ctk
 import json
+import tkinter as tk
 
 def get_user_inputs():
     inputs = {}
@@ -21,14 +19,19 @@ def get_user_inputs():
                     inputs[param] = int(entries[param].get())
             with open(config_path, "w") as f:
                 json.dump(inputs, f)
-            error_label.configure(text="Inputs successfully submitted. You can now close the interface.")
+            app.quit()  # Fechar a janela da interface gráfica após a submissão
         except ValueError:
             error_label.configure(text="Please enter valid numbers for all fields")
+
+    def on_closing():
+        # Fecha o programa se a janela for fechada sem clicar em "Submit"
+        app.destroy()
+        os._exit(0)
 
     app = ctk.CTk()
 
     # Centraliza a janela na tela
-    window_width, window_height = 400, 670
+    window_width, window_height = 400, 700
     screen_width = app.winfo_screenwidth()
     screen_height = app.winfo_screenheight()
     position_top = int(screen_height / 2 - window_height / 2)
@@ -36,8 +39,10 @@ def get_user_inputs():
     app.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
 
     app.title("ProTεuS G.A.O.")
-    app.iconbitmap(icon_path)  
+    app.iconbitmap(icon_path)  # Adiciona o ícone
     app.resizable(False, False)  # Torna a janela não redimensionável
+
+    app.protocol("WM_DELETE_WINDOW", on_closing)
 
     ctk.CTkLabel(app, text="ProTεuS Genetic Algorithm Optimization", font=("Segoe UI", 20)).pack(pady=10)
     ctk.CTkLabel(app, text="Select the Benchmark Functions", font=("Segoe UI", 14)).pack(pady=5)
@@ -79,7 +84,8 @@ def get_user_inputs():
     error_label = ctk.CTkLabel(app, text="", text_color="red", font=("Segoe UI", 12))
     error_label.pack(pady=5)
 
-    version_label = ctk.CTkLabel(app, text="Alpha_1.1", font=("Segoe UI", 10))
+    # Adiciona o texto "Alpha_1.0" no canto inferior esquerdo
+    version_label = ctk.CTkLabel(app, text="Alpha_1.3", font=("Segoe UI", 10))
     version_label.place(relx=0.01, rely=1.01, anchor='sw')
 
     app.mainloop()

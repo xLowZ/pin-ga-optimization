@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 from utils import RASTRIGIN, ACKLEY, SPHERE, EASOM, MCCORMICK, eval_GA, conversion_visualization
 from algorithm import *
 
-
 def timer(elapsed_time: float) -> None:
     """
         Shows the elapsed time of the algorithm.
@@ -77,6 +76,7 @@ def msGA(*, nIterations: int, pop_size: int, mutation_rate: float, final_mutatio
     return population[0], best_solutions_per_generation
 
 
+
 def run_ga(benchmark, population_size, number_of_generations, dimensions, mutation_rate, final_mutation_rate, mutation_strength, final_mutation_strength, nTests):
     solutions = []
     trajectories = []
@@ -97,6 +97,7 @@ def run_ga(benchmark, population_size, number_of_generations, dimensions, mutati
 
 def run_operations():
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
+    results_path = os.path.join(os.path.dirname(__file__), 'config', 'results.json')
 
     with open(config_path, "r") as f:
         user_inputs = json.load(f)
@@ -119,23 +120,55 @@ def run_operations():
         "MCCORMICK": MCCORMICK
     }
 
+    all_results = []
+
     for benchmark_name in benchmarks:
         benchmark = benchmark_map[benchmark_name]
         solutions, trajectories = run_ga(benchmark, population_size, number_of_generations, dimensions, mutation_rate, final_mutation_rate, mutation_strength, final_mutation_strength, nTests)
-        eval_GA(solutions, benchmark)
-        if nTests < 4:
-            conversion_visualization(trajectories)
+        
+        benchmark_results = []
+        for i, solution in enumerate(solutions):
+            result = {
+                "test_number": i + 1,
+                "mean_value": float(np.mean([sol.get_fitness() for sol in solutions])),
+                "std_value": float(np.std([sol.get_fitness() for sol in solutions])),
+                "best_genes": solution.get_genes().tolist(),
+                "best_value": float(solution.get_fitness()),
+                "worst_value": float(max([sol.get_fitness() for sol in solutions]))
+            }
+            benchmark_results.append(result)
+        
+        all_results.append({
+            "benchmark_name": benchmark_name,
+            "results": benchmark_results
+        })
+
+    with open(results_path, "w") as f:
+        json.dump(all_results, f, indent=4)
+
+def clear_user_inputs():
+    config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
+    with open(config_path, "w") as f:
+        json.dump({}, f)
 
 def main() -> None:
-    config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
     subprocess.run(["python", os.path.join(os.path.dirname(__file__), 'UI', 'interface.py')])
+
+    config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
+    # Verifica se o arquivo user_inputs.json foi criado
+    if not os.path.exists(config_path) or os.stat(config_path).st_size == 0:
+        print("User input was not provided. Exiting the program.")
+        return
+
     run_operations()
+    
+    # Abrir a interface de resultados
+    subprocess.run(["python", os.path.join(os.path.dirname(__file__), 'UI', 'results_interface.py')])
 
-    # Manter o terminal aberto
-    input("Press Enter to exit...")
+    # Limpar o conteúdo de user_inputs.json
+    clear_user_inputs()
 
-if __name__ == "__main__":
-    main()
+
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
