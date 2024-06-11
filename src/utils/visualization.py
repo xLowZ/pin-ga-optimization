@@ -100,19 +100,19 @@ def eval_GA(results: list[Solution], target_fnc: int):
     results = np.sort(results)
 
     # Basic Statistics
-    mean_value = np.mean(solution_values)
+    median_value = np.median(solution_values)
     std_value = np.std(solution_values)
     best_value = np.min(solution_values)
     worst_value = np.max(solution_values)
 
-    print(f"Mean of solutions: {mean_value}")
+    print(f"Median of solutions: {median_value}")
     print(f"Standard deviation of solutions: {std_value}")
-    print(f"Best solution Genes found: {results[0].get_genes()}")
-    print(f"Best solution Fitness found: {best_value}")
+    print(f"Best Genes found: {results[0].get_genes()}")
+    print(f"Best Fitness found: {best_value}")
     print(f"Worst solution found: {worst_value}")
     
 
-    plot_fitness_classification(classify_fitness(results, target_fnc))
+    # plot_fitness_classification(classify_fitness(results, target_fnc))
 
     # # Visualization
     # plt.hist(solution_values, bins=30, alpha=0.75, color='blue')
