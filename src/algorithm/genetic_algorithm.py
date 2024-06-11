@@ -41,47 +41,17 @@ def initialization(pop_size: int, *, nDimensions: int, target_fnc: int) -> list[
 
     initial_population: list[Solution] = []
 
-    if target_fnc == RASTRIGIN:
-        # Create solutions in Rastrigin function bounds range
+    if target_fnc in (RASTRIGIN, ACKLEY, SPHERE, EASOM):
+        # Create solutions in target function bounds range
         for _ in range(pop_size):
 
-            new_solution = Solution(np.random.uniform(low=BOUNDS[RASTRIGIN][LOWER], high=BOUNDS[RASTRIGIN][HIGHER], size=nDimensions))
+            new_solution = Solution(np.random.uniform(low=BOUNDS[target_fnc][LOWER], high=BOUNDS[target_fnc][HIGHER], size=nDimensions))
 
-            new_solution.calc_fitness(RASTRIGIN)
+            new_solution.calc_fitness(target_fnc)
 
             initial_population.append(new_solution)
 
-        # initial_population = [Solution(np.random.uniform(low=BOUNDS[RASTRIGIN][LOWER], high=BOUNDS[RASTRIGIN][HIGHER], size=nDimensions)) for _ in range(pop_size)]
-        
-    elif target_fnc == ACKLEY:
-        # Create solutions in Rastrigin function bounds range
-        for _ in range(pop_size):
-
-            new_solution = Solution(np.random.uniform(low=BOUNDS[ACKLEY][LOWER], high=BOUNDS[ACKLEY][HIGHER], size=nDimensions))
-
-            new_solution.calc_fitness(ACKLEY)
-
-            initial_population.append(new_solution)
-
-    elif target_fnc == SPHERE:
-        # Create solutions in Sphere function bounds range
-        for _ in range(pop_size):
-            
-            new_solution = Solution(np.random.uniform(low=BOUNDS[SPHERE][LOWER], high=BOUNDS[SPHERE][HIGHER], size=nDimensions))
-
-            new_solution.calc_fitness(SPHERE)
-
-            initial_population.append(new_solution)
-
-    elif target_fnc == EASOM:
-        # Create solutions in EASOM function bounds range
-        for _ in range(pop_size):
-            
-            new_solution = Solution(np.random.uniform(low=BOUNDS[EASOM][LOWER], high=BOUNDS[EASOM][HIGHER], size=nDimensions))
-
-            new_solution.calc_fitness(EASOM)
-
-            initial_population.append(new_solution)
+        # initial_population = [Solution(np.random.uniform(low=BOUNDS[target_fnc][LOWER], high=BOUNDS[target_fnc][HIGHER], size=nDimensions)) for _ in range(pop_size)]
 
     elif target_fnc == MCCORMICK:
         # Create solutions in McCormick function bounds range
@@ -96,8 +66,10 @@ def initialization(pop_size: int, *, nDimensions: int, target_fnc: int) -> list[
 
             initial_population.append(new_solution)
 
-    return initial_population
+    else:
+        raise ValueError("Could not find function")        
 
+    return initial_population
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # --- Selection ---
@@ -169,26 +141,44 @@ def crossover(first_parent: Solution, second_parent: Solution, *, nPoints=ONE) -
         Two child solutions.
     """
 
+    first_parent_genes = first_parent.get_genes()
+    second_parent_genes = second_parent.get_genes()
+
+    if len(first_parent) == 2:
+
+        part1: int = np.random.randint(0, 2)
+        part2: int = np.random.randint(0, 2)
+
+        first_child_genes: list[float] = [first_parent_genes[0] if part1 == 0 else first_parent_genes[1],
+                                          second_parent_genes[0] if part2 == 0 else second_parent_genes[1]]
+        
+        second_child_genes: list[float] = [second_parent_genes[0] if part1 == 0 else second_parent_genes[1],
+                                           first_parent_genes[0] if part2 == 0 else first_parent_genes[1]]
+
+
     # One point crossover
-    if (nPoints == ONE):
-
-        if len(first_parent) == 2:
-
-            part1: int = np.random.randint(0, 2)
-            part2: int = np.random.randint(0, 2)
-
-            first_child_genes: list[float] = [first_parent.get_genes()[0] if part1 == 0 else first_parent.get_genes()[1],
-                                              second_parent.get_genes()[0] if part2 == 0 else second_parent.get_genes()[1]]
+    elif nPoints == ONE:
             
-            second_child_genes: list[float] = [second_parent.get_genes()[0] if part1 == 0 else second_parent.get_genes()[1],
-                                               first_parent.get_genes()[0] if part2 == 0 else first_parent.get_genes()[1]]
-        else:
-            raise NotImplementedError
-    
+        point = np.random.randint(1, len(first_parent))
+
+        first_child_genes = np.concatenate([first_parent_genes[:point], second_parent_genes[point:]])
+        second_child_genes = np.concatenate([second_parent_genes[:point], first_parent_genes[point:]])
+
+
     # Two points crossover
     elif nPoints == TWO:
-        raise NotImplementedError
-    
+
+        first_point, second_point = sorted(np.random.choice(range(1, len(first_parent)), 2, replace=False))
+
+        first_child_genes = np.concatenate([first_parent_genes[:first_point],
+                                            second_parent_genes[first_point:second_point],
+                                            first_parent_genes[second_point:]])
+                                           
+        second_child_genes = np.concatenate([second_parent_genes[:first_point],
+                                             first_parent_genes[first_point:second_point],
+                                             second_parent_genes[second_point:]])
+
+
     else:
         raise ValueError("nPoints must be ONE or TWO")
 

@@ -44,7 +44,7 @@ def genetic_algorithm(*, nIterations: int, pop_size: int, mutation_rate: float, 
         # population = VAR_create_new_gen(population, mutation_rate, pop_size, target_function)
         population = create_new_gen(population, mutation_rate, pop_size, target_function)
 
-        print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
+        # print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
 
         best_solutions_per_generation.append(population[0].get_fitness())
 
@@ -69,7 +69,7 @@ def msGA(*, nIterations: int, pop_size: int, mutation_rate: float, final_mutatio
         # population = VAR_create_new_gen(population, current_mutation_rate, pop_size, target_function, mutation_strength)
         population = create_new_gen(population, current_mutation_rate, pop_size, target_function, mutation_strength)
 
-        print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
+        # print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
 
         best_solutions_per_generation.append(population[0].get_fitness())
 
@@ -80,6 +80,7 @@ def msGA(*, nIterations: int, pop_size: int, mutation_rate: float, final_mutatio
 def run_ga(benchmark, population_size, number_of_generations, dimensions, mutation_rate, final_mutation_rate, mutation_strength, final_mutation_strength, nTests):
     solutions = []
     trajectories = []
+
     for iteration in range(nTests):
         best_solution, best_solutions_per_generation = msGA(
             nIterations=number_of_generations,
@@ -167,8 +168,6 @@ def main() -> None:
 
     # Limpar o conteúdo de user_inputs.json
     clear_user_inputs()
-
-
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
