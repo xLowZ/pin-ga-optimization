@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -85,7 +84,24 @@ def classify_fitness(solutions: list[Solution], target_fnc: int) -> list[int]:
                 classification[3] += 1  # Poor
 
     elif target_fnc == MCCORMICK:
-        raise NotImplementedError
+
+        EXCELLENT_THRESHOLD = -1.913322294
+
+        GOOD_THRESHOLD = -1.913322292
+
+        AVERAGE_THRESHOLD = -1.91332229
+
+        for solution in solutions:
+            fitness = solution.get_fitness()
+
+            if fitness < EXCELLENT_THRESHOLD:
+                classification[0] += 1  # Excellent
+            elif EXCELLENT_THRESHOLD <= fitness < GOOD_THRESHOLD:
+                classification[1] += 1  # Good
+            elif GOOD_THRESHOLD <= fitness < AVERAGE_THRESHOLD:
+                classification[2] += 1  # Average
+            else:
+                classification[3] += 1  # Poor
 
     else:
         raise ValueError("Unknown target function")
@@ -133,4 +149,5 @@ def conversion_visualization(trajectories: list[list[float]]) -> None:
     plt.show()
 
 if __name__ == "__main__":
+
     print('')
