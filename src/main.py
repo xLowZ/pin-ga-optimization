@@ -44,7 +44,7 @@ def genetic_algorithm(*, nIterations: int, pop_size: int, mutation_rate: float, 
         # population = VAR_create_new_gen(population, mutation_rate, pop_size, target_function)
         population = create_new_gen(population, mutation_rate, pop_size, target_function)
 
-        # print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
+        print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
 
         best_solutions_per_generation.append(population[0].get_fitness())
 
@@ -69,7 +69,7 @@ def msGA(*, nIterations: int, pop_size: int, mutation_rate: float, final_mutatio
         # population = VAR_create_new_gen(population, current_mutation_rate, pop_size, target_function, mutation_strength)
         population = create_new_gen(population, current_mutation_rate, pop_size, target_function, mutation_strength)
 
-        # print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
+        print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
 
         best_solutions_per_generation.append(population[0].get_fitness())
 
