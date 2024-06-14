@@ -6,14 +6,12 @@ from tkinter import filedialog
 
 def show_results():
     results_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'results.json')
-    icon_path = os.path.join(os.path.dirname(__file__), 'icon.ico')
 
     with open(results_path, "r") as f:
         all_results = json.load(f)
 
     app = ctk.CTk()
     app.title("GA Benchmark Results")
-    app.iconbitmap(icon_path)
     app.geometry("700x900")
     app.resizable(False, False)
 
@@ -35,15 +33,18 @@ def show_results():
                     file.write(f"{benchmark_name}\n")
                     results = benchmark["results"]
                     for result in results:
-                        test_label = f"TEST {result['test_number']}"
-                        file.write(f"{test_label}\n")
-                        file.write(f"Mean of solutions: {result['mean_value']}\n")
-                        file.write(f"Standard deviation of solutions: {result['std_value']}\n")
-                        file.write(f"Best Genes found: {result['best_genes']}\n")
-                        file.write(f"Best Fitness found: {result['best_value']}\n")
-                        file.write(f"Worst solution found: {result['worst_value']}\n")
-                        file.write("-" * 40 + "\n")
-                    file.write("=" * 40 + "\n\n")
+                        if "summary" in result:
+                            summary = result["summary"]
+                            file.write(f"Results for {benchmark_name}:\n")
+                            file.write(f"Median of solutions: {summary['median_value']}\n")
+                            file.write(f"Standard deviation of solutions: {summary['std_value']}\n")
+                            file.write(f"Best Genes found: {summary['best_genes']}\n")
+                            file.write(f"Best Fitness found: {summary['best_value']}\n")
+                            file.write(f"Worst solution found: {summary['worst_value']}\n")
+                            file.write("=" * 40 + "\n\n")
+                        else:
+                            file.write(f"TEST {result['test_number']}: {result['best_solution']}\n")
+                            file.write("-" * 40 + "\n")
 
     # Menu
     menu_bar = tk.Menu(app)
@@ -68,13 +69,16 @@ def show_results():
             ctk.CTkLabel(benchmark_frame, text=benchmark_name, font=("Segoe UI", 24, "bold")).pack(pady=10, padx=10)
             
             for result in results:
-                test_label = f"TEST {result['test_number']}"
-                ctk.CTkLabel(scrollable_frame, text=test_label, font=("Segoe UI", 18, "bold")).pack(pady=10)
-                ctk.CTkLabel(scrollable_frame, text=f"Mean of solutions: {result['mean_value']}", font=("Segoe UI", 14)).pack(pady=2)
-                ctk.CTkLabel(scrollable_frame, text=f"Standard deviation of solutions: {result['std_value']}", font=("Segoe UI", 14)).pack(pady=2)
-                ctk.CTkLabel(scrollable_frame, text=f"Best solution Genes found: {result['best_genes']}", font=("Segoe UI", 14)).pack(pady=2)
-                ctk.CTkLabel(scrollable_frame, text=f"Best solution Fitness found: {result['best_value']}", font=("Segoe UI", 14)).pack(pady=2)
-                ctk.CTkLabel(scrollable_frame, text=f"Worst solution found: {result['worst_value']}", font=("Segoe UI", 14)).pack(pady=2)
+                if "summary" in result:
+                    summary = result["summary"]
+                    ctk.CTkLabel(scrollable_frame, text=f"Results for {benchmark_name}:", font=("Segoe UI", 18, "bold")).pack(pady=10)
+                    ctk.CTkLabel(scrollable_frame, text=f"Median of solutions: {summary['median_value']}", font=("Segoe UI", 14)).pack(pady=2)
+                    ctk.CTkLabel(scrollable_frame, text=f"Standard deviation of solutions: {summary['std_value']}", font=("Segoe UI", 14)).pack(pady=2)
+                    ctk.CTkLabel(scrollable_frame, text=f"Best Genes found: {summary['best_genes']}", font=("Segoe UI", 14)).pack(pady=2)
+                    ctk.CTkLabel(scrollable_frame, text=f"Best Fitness found: {summary['best_value']}", font=("Segoe UI", 14)).pack(pady=2)
+                    ctk.CTkLabel(scrollable_frame, text=f"Worst solution found: {summary['worst_value']}", font=("Segoe UI", 14)).pack(pady=2)
+                else:
+                    ctk.CTkLabel(scrollable_frame, text=f"TEST {result['test_number']}: {result['best_solution']}", font=("Segoe UI", 14)).pack(pady=2)
                 
                 # Adicionar um separador simples
                 separator = ctk.CTkFrame(scrollable_frame, height=2, width=650, fg_color="grey")
