@@ -271,7 +271,7 @@ def create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size: int
         if np.random.rand() < mutation_rate:
             inds = np.random.choice(range(len(offspring)), int(len(offspring) / 4), replace=False)
             for i in inds:
-                offspring[i].mutate(mutation_strength=0.2)        
+                offspring[i].mutate(mutation_strength=ms)        
                 offspring[i].calc_fitness(target_fnc)        
 
         new_generation = selected + offspring
