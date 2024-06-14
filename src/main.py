@@ -168,6 +168,9 @@ def clear_user_inputs():
         json.dump({}, f)
 
 def main() -> None:
+
+    np.random.seed(10)
+
     subprocess.run(["python", os.path.join(os.path.dirname(__file__), 'UI', 'interface.py')])
 
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
