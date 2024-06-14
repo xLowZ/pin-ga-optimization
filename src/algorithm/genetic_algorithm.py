@@ -206,9 +206,8 @@ def find_best(population: list[Solution]) -> Solution:
     # assert all(isinstance(ind, Solution) for ind in population), "Population contains non-Solution elements"
     # assert all(ind is not None for ind in population), "Population contains None elements"
 
-    population = np.sort(population)
 
-    return population[0]
+    return min(population, key=lambda sol: sol.get_fitness())
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

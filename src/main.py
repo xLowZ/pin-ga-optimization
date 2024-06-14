@@ -1,17 +1,20 @@
 import sys
 import os
+import json
+import subprocess
+import multiprocessing
 
 sys.path.insert(0, os.path.abspath(os.curdir))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import numpy as np
 import time
+
 import matplotlib.pyplot as plt
 
 # from benchmark import *
 from utils import RASTRIGIN, ACKLEY, SPHERE, EASOM, MCCORMICK, eval_GA, conversion_visualization
 from algorithm import *
-
 
 def timer(elapsed_time: float) -> None:
     """
@@ -42,7 +45,7 @@ def genetic_algorithm(*, nIterations: int, pop_size: int, mutation_rate: float, 
         # population = VAR_create_new_gen(population, mutation_rate, pop_size, target_function)
         population = create_new_gen(population, mutation_rate, pop_size, target_function)
 
-        # print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
+        print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
 
         best_solutions_per_generation.append(population[0].get_fitness())
 
@@ -67,41 +70,18 @@ def msGA(*, nIterations: int, pop_size: int, mutation_rate: float, final_mutatio
         # population = VAR_create_new_gen(population, current_mutation_rate, pop_size, target_function, mutation_strength)
         population = create_new_gen(population, current_mutation_rate, pop_size, target_function, mutation_strength)
 
-        # print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
+        print(f"{generation+1}. Generation -->> Fitness --> {population[0].get_fitness()}")
 
         best_solutions_per_generation.append(population[0].get_fitness())
 
     return population[0], best_solutions_per_generation
 
 
-def main() -> None:
 
-    np.random.seed(10)
-
-    solutions = []
-    trajectories = []
-
-    target_function = MCCORMICK
-    population_size: int = 250
-    number_of_generations: int = 2000
-    dimensions: int = 2
-    mutation_rate: float = 0.1
-    final_mutation_rate: float = 0.1
-    mutation_strength: float = 0.2
-    final_mutation_strength: float = 0.001
-    nTests = 4
-
-    start = time.time()
+def run_ga(params):
+    benchmark, population_size, number_of_generations, dimensions, mutation_rate, final_mutation_rate, mutation_strength, final_mutation_strength, nTests = params
+    best_solutions = []
     for iteration in range(nTests):
-
-        # best_solution, best_solutions_per_generation = genetic_algorithm(
-        #     nIterations=number_of_generations,
-        #     pop_size=population_size,
-        #     mutation_rate=mutation_rate,
-        #     target_function=target_function,
-        #     dimensions=dimensions,
-        # )
-
         best_solution, best_solutions_per_generation = msGA(
             nIterations=number_of_generations,
             pop_size=population_size,
@@ -109,22 +89,104 @@ def main() -> None:
             final_mutation_rate=final_mutation_rate,
             ms_rate=mutation_strength,
             final_ms_rate=final_mutation_strength,
-            target_function=target_function,
+            target_function=benchmark,
             dimensions=dimensions,
         )
+        best_solutions.append(best_solution)
+    return benchmark, best_solutions
 
-        print(f"{iteration+1}. Best solution: {best_solution}")
+def run_operations():
+    config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
+    results_path = os.path.join(os.path.dirname(__file__), 'config', 'results.json')
 
-        solutions.append(best_solution)
-        trajectories.append(best_solutions_per_generation)
-    end = time.time()
+    with open(config_path, "r") as f:
+        user_inputs = json.load(f)
 
-    eval_GA(solutions, target_function)
+    benchmarks = user_inputs["benchmarks"]
+    population_size = user_inputs["population_size"]
+    number_of_generations = user_inputs["number_of_generations"]
+    dimensions = user_inputs["dimensions"]
+    mutation_rate = user_inputs["mutation_rate"]
+    final_mutation_rate = user_inputs["final_mutation_rate"]
+    mutation_strength = user_inputs["mutation_strength"]
+    final_mutation_strength = user_inputs["final_mutation_strength"]
+    nTests = user_inputs["nTests"]
 
-    # if nTests < 4:
-    #     conversion_visualization(trajectories)    
+    benchmark_map = {
+        "RASTRIGIN": RASTRIGIN,
+        "ACKLEY": ACKLEY,
+        "SPHERE": SPHERE,
+        "EASOM": EASOM,
+        "MCCORMICK": MCCORMICK
+    }
 
-    timer(end-start)
+    all_results = []
+
+    # Preparar parâmetros para multiprocessing
+    params_list = [
+        (benchmark_map[benchmark], population_size, number_of_generations, dimensions, mutation_rate, final_mutation_rate, mutation_strength, final_mutation_strength, nTests)
+        for benchmark in benchmarks
+    ]
+
+    with multiprocessing.Pool() as pool:
+        results = pool.map(run_ga, params_list)
+
+    for benchmark, best_solutions in results:
+        benchmark_name = [k for k, v in benchmark_map.items() if v == benchmark][0]
+        benchmark_results = []
+        solution_values = [sol.get_fitness() for sol in best_solutions]
+        best_solutions_sorted = sorted(best_solutions, key=lambda x: x.get_fitness())
+        
+        for i, solution in enumerate(best_solutions):
+            benchmark_results.append({
+                "test_number": i + 1,
+                "best_solution": str(solution)
+            })
+
+        # Calcular e armazenar estatísticas finais
+        benchmark_results.append({
+            "summary": {
+                "median_value": float(np.median(solution_values)),
+                "std_value": float(np.std(solution_values)),
+                "best_genes": best_solutions_sorted[0].get_genes().tolist(),
+                "best_value": float(np.min(solution_values)),
+                "worst_value": float(np.max(solution_values))
+            }
+        })
+        
+        all_results.append({
+            "benchmark_name": benchmark_name,
+            "results": benchmark_results
+        })
+
+    with open(results_path, "w") as f:
+        json.dump(all_results, f, indent=4)
+
+def clear_user_inputs():
+    config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
+    with open(config_path, "w") as f:
+        json.dump({}, f)
+
+def main() -> None:
+    subprocess.run(["python", os.path.join(os.path.dirname(__file__), 'UI', 'interface.py')])
+
+    config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
+    # Verifica se o arquivo user_inputs.json foi criado
+    if not os.path.exists(config_path) or os.stat(config_path).st_size == 0:
+        print("User input was not provided. Exiting the program.")
+        return
+
+    run_operations()
+    
+    # Abrir a interface de resultados
+    subprocess.run(["python", os.path.join(os.path.dirname(__file__), 'UI', 'results_interface.py')])
+
+    # Limpar o conteúdo de user_inputs.json
+    clear_user_inputs()
+
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')  # Necessário para compatibilidade no Windows
+    main()
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
