@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import subprocess
+import multiprocessing
 
 sys.path.insert(0, os.path.abspath(os.curdir))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -77,10 +78,9 @@ def msGA(*, nIterations: int, pop_size: int, mutation_rate: float, final_mutatio
 
 
 
-def run_ga(benchmark, population_size, number_of_generations, dimensions, mutation_rate, final_mutation_rate, mutation_strength, final_mutation_strength, nTests):
-    solutions = []
-    trajectories = []
-
+def run_ga(params):
+    benchmark, population_size, number_of_generations, dimensions, mutation_rate, final_mutation_rate, mutation_strength, final_mutation_strength, nTests = params
+    best_solutions = []
     for iteration in range(nTests):
         best_solution, best_solutions_per_generation = msGA(
             nIterations=number_of_generations,
@@ -92,9 +92,8 @@ def run_ga(benchmark, population_size, number_of_generations, dimensions, mutati
             target_function=benchmark,
             dimensions=dimensions,
         )
-        solutions.append(best_solution)
-        trajectories.append(best_solutions_per_generation)
-    return solutions, trajectories
+        best_solutions.append(best_solution)
+    return benchmark, best_solutions
 
 def run_operations():
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'user_inputs.json')
@@ -123,21 +122,37 @@ def run_operations():
 
     all_results = []
 
-    for benchmark_name in benchmarks:
-        benchmark = benchmark_map[benchmark_name]
-        solutions, trajectories = run_ga(benchmark, population_size, number_of_generations, dimensions, mutation_rate, final_mutation_rate, mutation_strength, final_mutation_strength, nTests)
-        
+    # Preparar parâmetros para multiprocessing
+    params_list = [
+        (benchmark_map[benchmark], population_size, number_of_generations, dimensions, mutation_rate, final_mutation_rate, mutation_strength, final_mutation_strength, nTests)
+        for benchmark in benchmarks
+    ]
+
+    with multiprocessing.Pool() as pool:
+        results = pool.map(run_ga, params_list)
+
+    for benchmark, best_solutions in results:
+        benchmark_name = [k for k, v in benchmark_map.items() if v == benchmark][0]
         benchmark_results = []
-        for i, solution in enumerate(solutions):
-            result = {
+        solution_values = [sol.get_fitness() for sol in best_solutions]
+        best_solutions_sorted = sorted(best_solutions, key=lambda x: x.get_fitness())
+        
+        for i, solution in enumerate(best_solutions):
+            benchmark_results.append({
                 "test_number": i + 1,
-                "mean_value": float(np.mean([sol.get_fitness() for sol in solutions])),
-                "std_value": float(np.std([sol.get_fitness() for sol in solutions])),
-                "best_genes": solution.get_genes().tolist(),
-                "best_value": float(solution.get_fitness()),
-                "worst_value": float(max([sol.get_fitness() for sol in solutions]))
+                "best_solution": str(solution)
+            })
+
+        # Calcular e armazenar estatísticas finais
+        benchmark_results.append({
+            "summary": {
+                "median_value": float(np.median(solution_values)),
+                "std_value": float(np.std(solution_values)),
+                "best_genes": best_solutions_sorted[0].get_genes().tolist(),
+                "best_value": float(np.min(solution_values)),
+                "worst_value": float(np.max(solution_values))
             }
-            benchmark_results.append(result)
+        })
         
         all_results.append({
             "benchmark_name": benchmark_name,
@@ -168,6 +183,10 @@ def main() -> None:
 
     # Limpar o conteúdo de user_inputs.json
     clear_user_inputs()
+
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')  # Necessário para compatibilidade no Windows
+    main()
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
