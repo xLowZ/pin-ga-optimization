@@ -108,20 +108,34 @@ def eval_GA(results: list[Solution], target_fnc: int):
 
     solution_values = [sol.get_fitness() for sol in results]
 
-    results = np.sort(results)
+    sorted_results = np.sort(results)
 
-    # Basic Statistics
+    mean_value = np.mean(solution_values)
     median_value = np.median(solution_values)
     std_value = np.std(solution_values)
     best_value = np.min(solution_values)
     worst_value = np.max(solution_values)
+    first_quartile = np.percentile(solution_values, 25)
+    third_quartile = np.percentile(solution_values, 75)
 
     print(f"Target function: {fnc} function")
+    print(f"Mean of solutions: {mean_value}")
     print(f"Median of solutions: {median_value}")
     print(f"Standard deviation of solutions: {std_value}")
-    print(f"Best Genes found: {results[0].get_genes()}")
+    print(f"Best Genes found: {sorted_results[0].get_genes()}")
     print(f"Best Fitness found: {best_value}")
     print(f"Worst solution found: {worst_value}")
+    print(f"First Quartile: {first_quartile}")
+    print(f"Third Quartile: {third_quartile}")
+
+    # Plot
+    plt.figure(figsize=(8, 6))
+    plt.boxplot(solution_values, vert=False, patch_artist=True, labels=[f"{fnc} function"])
+    plt.title('Boxplot of Fitness Values')
+    plt.xlabel('Fitness Value')
+    plt.ylabel('Function')
+    plt.grid(True)
+    plt.show()
     
 
     # plot_fitness_classification(classify_fitness(results, target_fnc))
