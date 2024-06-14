@@ -89,7 +89,7 @@ def main() -> None:
     final_mutation_rate: float = 0.1
     mutation_strength: float = 0.2
     final_mutation_strength: float = 0.001
-    nTests = 4
+    nTests = 1
 
     start = time.time()
     for iteration in range(nTests):
@@ -121,8 +121,7 @@ def main() -> None:
 
     eval_GA(solutions, target_function)
 
-    # if nTests < 4:
-    #     conversion_visualization(trajectories)    
+    conversion_visualization(trajectories)    
 
     timer(end-start)
 
