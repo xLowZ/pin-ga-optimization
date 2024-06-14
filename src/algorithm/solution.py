@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import numpy as np
 from benchmark.functions import TARGET_FUNCTIONS
-# from utils import BOUNDS, LOWER, HIGHER
+from utils import BOUNDS, LOWER, HIGHER, MCCORMICK
 
 # def scaled_fitness(value):
 #     return -np.log(value + 1e-12)  
@@ -84,6 +84,20 @@ class Solution:
         #     self.__chromosome[i] += np.random.rand()
         # mutation_vector = np.random.rand(len(self.__chromosome)) < mutation_strength
         # self.__chromosome[mutation_vector] += np.random.normal(0, 1, sum(mutation_vector))
+
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # --- Check bounds function ---
+
+    def ncheck(self, target_fnc: int) -> None:
+
+        if target_fnc == MCCORMICK:
+            for i in range(len(self.__chromosome)):
+                if not (BOUNDS[MCCORMICK][i][LOWER] <= self.__chromosome[i] <= BOUNDS[MCCORMICK][i][HIGHER]):
+                    self.__chromosome[i] = max(BOUNDS[MCCORMICK][LOWER][LOWER], min(self.__chromosome[i], BOUNDS[MCCORMICK][LOWER][HIGHER]))
+        else:
+            for i in range(len(self.__chromosome)):
+                if not (BOUNDS[target_fnc][LOWER] <= self.__chromosome[i] <= BOUNDS[target_fnc][HIGHER]):
+                    self.__chromosome[i] = max(BOUNDS[target_fnc][LOWER], min(self.__chromosome[i], BOUNDS[target_fnc][HIGHER]))
 
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

@@ -206,9 +206,11 @@ def find_best(population: list[Solution]) -> Solution:
     # assert all(isinstance(ind, Solution) for ind in population), "Population contains non-Solution elements"
     # assert all(ind is not None for ind in population), "Population contains None elements"
 
-    population = np.sort(population)
+    # population = np.sort(population)
 
-    return population[0]
+    # return population[0]
+
+    return min(population, key=lambda sol: sol.get_fitness())
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -260,22 +262,22 @@ def create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size: int
         selected_indices = np.argsort(fitness)[:pop_size // 2]
         selected = [prev_gen[i] for i in selected_indices]
 
-        offspring = []
+        fake_offspring = []
         for nInd in selected:
             new_solution = Solution(np.random.uniform(low=BOUNDS[target_fnc][LOWER], high=BOUNDS[target_fnc][HIGHER], size=1))
 
             new_solution.calc_fitness(target_fnc)
 
-            offspring.append(new_solution)
+            fake_offspring.append(new_solution)
 
         # Mutation
         if np.random.rand() < mutation_rate:
-            inds = np.random.choice(range(len(offspring)), int(len(offspring) / 4), replace=False)
+            inds = np.random.choice(range(len(fake_offspring)), int(len(fake_offspring) / 4), replace=False)
             for i in inds:
-                offspring[i].mutate(mutation_strength=0.2)        
-                offspring[i].calc_fitness(target_fnc)        
+                fake_offspring[i].mutate(mutation_strength=ms)        
+                fake_offspring[i].calc_fitness(target_fnc)
 
-        new_generation = selected + offspring
+        new_generation = selected + fake_offspring
 
         # Ensure that the new population has the correct size
         if len(new_generation) > pop_size:
@@ -317,13 +319,16 @@ def VAR_create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size:
             first_parent = selection(prev_gen, pop_size, mode=FPS)
             second_parent = selection(prev_gen, pop_size, mode=FPS)
             
-            first_child, second_child = crossover(first_parent, second_parent, nPoints=TWO)
+            first_child, second_child = crossover(first_parent, second_parent, nPoints=ONE)
 
             # Mutation
             if np.random.rand() < mutation_rate:
                 first_child.mutate(mutation_strength=ms)
             if np.random.rand() < mutation_rate:
                 second_child.mutate(mutation_strength=ms)
+
+            # first_child.check(target_fnc)
+            # second_child.check(target_fnc)
 
             # Evaluate the new solutions
             first_child.calc_fitness(target_fnc)
