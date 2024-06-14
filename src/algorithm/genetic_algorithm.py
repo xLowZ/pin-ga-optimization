@@ -311,11 +311,13 @@ def VAR_create_new_gen(prev_gen: list[Solution], mutation_rate: float, pop_size:
     new_generation = sorted_prev_gen[:num_elites]
 
     while len(new_generation) < pop_size:
-        first_parent = selection(prev_gen, pop_size, mode=TOURNAMENT)
-        second_parent = selection(prev_gen, pop_size, mode=TOURNAMENT)
 
         if len(prev_gen[0]) > 1:
-            first_child, second_child = crossover(first_parent, second_parent, nPoints=ONE)
+
+            first_parent = selection(prev_gen, pop_size, mode=FPS)
+            second_parent = selection(prev_gen, pop_size, mode=FPS)
+            
+            first_child, second_child = crossover(first_parent, second_parent, nPoints=TWO)
 
             # Mutation
             if np.random.rand() < mutation_rate:
