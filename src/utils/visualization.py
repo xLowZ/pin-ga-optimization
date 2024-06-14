@@ -95,6 +95,17 @@ def classify_fitness(solutions: list[Solution], target_fnc: int) -> list[int]:
 
 def eval_GA(results: list[Solution], target_fnc: int):
     
+    if target_fnc == RASTRIGIN:
+        fnc = "Rastrigin"
+    elif target_fnc == ACKLEY:
+        fnc = "Ackley"
+    elif target_fnc == SPHERE:
+        fnc = "Sphere"
+    elif target_fnc == EASOM:
+        fnc = "Easom"
+    else:
+        fnc = "McCormick"
+
     solution_values = [sol.get_fitness() for sol in results]
 
     results = np.sort(results)
@@ -105,6 +116,7 @@ def eval_GA(results: list[Solution], target_fnc: int):
     best_value = np.min(solution_values)
     worst_value = np.max(solution_values)
 
+    print(f"Target function: {fnc} function")
     print(f"Median of solutions: {median_value}")
     print(f"Standard deviation of solutions: {std_value}")
     print(f"Best Genes found: {results[0].get_genes()}")
