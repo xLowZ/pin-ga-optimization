@@ -52,16 +52,20 @@ def rastrigin_fnc(x: list[float | int], *, bounds: tuple[float | int]=(-5.12, 5.
 
     if not fast:
     
-        if isinstance(x, (int, float)):
-            x = np.array([x])
+        # if isinstance(x, (int, float)):
+        #     x = np.array([x])
 
-        x = np.array(x)
+        # x = np.array(x)
 
-        # notValid: bool = any((xi >= bounds[0] or xi <= bounds[1]) for xi in x)
-        notValid: bool = np.any((x <= bounds[0]) | (x >= bounds[1]))
+        # # notValid: bool = any((xi >= bounds[0] or xi <= bounds[1]) for xi in x)
+        # notValid: bool = np.any((x <= bounds[0]) | (x >= bounds[1]))
 
-        if notValid:
-            raise ValueError("Domain out of bounds")
+        # if notValid:
+        #     raise ValueError("Domain out of bounds")
+
+        for i in range(len(x)):
+            if not (bounds[0] <= x[i] <= bounds[1]):
+                x[i] = max(bounds[0], min(x[i], bounds[1]))
 
     # return Ai + np.sum(np.fromiter(((xi**2 - A * np.cos(2 * np.pi * xi)) for xi in x), dtype=float)) #-> Old
 
@@ -92,16 +96,19 @@ def ackley_fnc(x: list[float | int], *, bounds: tuple[float | int]=(-5, 5), fast
 
     if not fast:
 
-        x = np.array(x)
+        # x = np.array(x)
 
-        if nDim < 2:
-            raise ValueError("The input array must have at least 2 dimensions")
+        # if nDim < 2:
+        #     raise ValueError("The input array must have at least 2 dimensions")
 
-        notValid: bool = np.any((x <= bounds[0]) | (x >= bounds[1]))
+        # notValid: bool = np.any((x <= bounds[0]) | (x >= bounds[1]))
 
-        if notValid:
-            raise ValueError("Domain out of bounds")
+        # if notValid:
+        #     raise ValueError("Domain out of bounds")
 
+        for i in range(len(x)):
+            if not (bounds[0] <= x[i] <= bounds[1]):
+                x[i] = max(bounds[0], min(x[i], bounds[1]))
 
     term1 = -A * np.exp(-B * np.sqrt(np.sum(x**2) / nDim))
 
@@ -114,7 +121,7 @@ def ackley_fnc(x: list[float | int], *, bounds: tuple[float | int]=(-5, 5), fast
 # --- Sphere benchmark function ---
 
 @reg_fnc(SPHERE)
-def sphere_fnc(x: list[float | int], *, fast: bool=False) -> float:
+def sphere_fnc(x: list[float | int], *, bounds: tuple[float | int]=(-1_000, 1_000), fast: bool=False) -> float:
     """
         Sphere benchmark function for n dimensions.
 
@@ -128,10 +135,14 @@ def sphere_fnc(x: list[float | int], *, fast: bool=False) -> float:
 
     if not fast:
 
-        if isinstance(x, (int, float)):
-            x = np.array([x])
+        # if isinstance(x, (int, float)):
+        #     x = np.array([x])
 
-        x = np.array(x)
+        # x = np.array(x)
+
+        for i in range(len(x)):
+            if not (bounds[0] <= x[i] <= bounds[1]):
+                x[i] = max(bounds[0], min(x[i], bounds[1]))
 
     return np.sum(x**2)    
 
@@ -155,15 +166,19 @@ def easom_fnc(x: list[float | int], *, bounds: tuple[float | int]=(-100, 100), f
 
     if not fast:
 
-        x = np.array(x)
+        # x = np.array(x)
 
-        if len(x) != 2:
-            raise ValueError("The input array must have exactly 2 dimensions")
+        # if len(x) != 2:
+        #     raise ValueError("The input array must have exactly 2 dimensions")
 
-        notValid: bool = np.any((x <= bounds[0]) | (x >= bounds[1]))
+        # notValid: bool = np.any((x <= bounds[0]) | (x >= bounds[1]))
 
-        if notValid:
-            raise ValueError("Domain out of bounds")
+        # if notValid:
+        #     raise ValueError("Domain out of bounds")
+
+        for i in range(len(x)):
+            if not (bounds[0] <= x[i] <= bounds[1]):
+                x[i] = max(bounds[0], min(x[i], bounds[1]))
         
     x1, x2 = x[0], x[1]
 
@@ -192,14 +207,14 @@ def mccormick_fnc(x: list[float | int], *, bounds: list[tuple[float | int]]=[(-1
 
     if not fast:
 
-        x = np.array(x)
+        # x = np.array(x)
 
-        if len(x) != 2:
-            raise ValueError("The input array must have exactly 2 dimensions")
+        # if len(x) != 2:
+        #     raise ValueError("The input array must have exactly 2 dimensions")
         
         for i in range(len(x)):
             if not (bounds[i][0] <= x[i] <= bounds[i][1]):
-                raise ValueError("Domain out of bounds")
+                x[i] = max(bounds[i][0], min(x[i], bounds[i][1]))
 
     x1, x2 = x[0], x[1]
 
