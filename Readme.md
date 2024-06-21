@@ -1,7 +1,7 @@
 # Algoritmo Genético para Otimização de Funções de Benchmark
 
 ## Aviso
-⚠️ **Nota Importante:** O código deste projeto ainda __não está completo__. 
+
 - Ele contém várias funções de teste e pode estar "poluído". Estamos trabalhando para limpar e finalizar o código.
 
 ## Descrição do Projeto
